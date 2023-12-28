@@ -31,7 +31,9 @@ def time_limit(seconds, msg=''):
         timer.cancel()
 
 
-def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='data'):
+def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='data',
+                   version_name=None, google_map_path='https://www.google.co.th/maps',
+                   review_key='รีวิว'):
     '''
     used to scrape google map reviews of venue type
     at location,
@@ -45,7 +47,7 @@ def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='dat
         page = browser.new_page()
 
         # go to url with Playwright page element
-        page.goto(f'https://www.google.com/maps/search/{venue}+{location}')
+        page.goto(f'{google_map_path}/search/{venue}+{location}')
 
         time.sleep(4)
 
@@ -69,7 +71,8 @@ def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='dat
         # get links of all categories after scroll
         links = [item.get('href') for item in soup.select('.hfpxzc')]
 
-        timecode = time.time()
+        if version_name is None:
+            version_name = time.time()
         out = []
 
         page.close()
@@ -82,7 +85,7 @@ def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='dat
                     page.goto(link)
                     time.sleep(4)
 
-                    locator = page.locator("text='รีวิว'")
+                    locator = page.locator(f"text='{review_key}'")
                     if locator.count() > 0:
                         locator.first.click()
                     else:
@@ -104,14 +107,14 @@ def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='dat
                         out.append(pd.DataFrame(list(map(list, zip(reviews, stars)))))
                     except Exception as e:
                         print('Error!!', e)
-                        pass
+                        continue
             except TimeoutException as e:
                 print("Timed out!")
-                pass
+                continue
             page.close()
 
     pd.concat(out, axis=0).to_csv(os.path.join(path,
-                                               f'review_data_{venue}_{location}_{timecode}.csv'),
+                                               f'review_data_{venue}_{location}_{version_name}.csv'),
                                   index=False)
 
 
