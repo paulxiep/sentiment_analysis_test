@@ -31,7 +31,7 @@ def time_limit(seconds, msg=''):
         timer.cancel()
 
 
-def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='data',
+def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='raw_data',
                    version_name=None, google_map_path='https://www.google.co.th/maps',
                    review_key='รีวิว'):
     '''
@@ -89,6 +89,7 @@ def scrape_reviews(venue='restaurants', location='bangkok', n_pages=4, path='dat
                     if locator.count() > 0:
                         locator.first.click()
                     else:
+                        page.close()
                         continue
 
                     time.sleep(4)
