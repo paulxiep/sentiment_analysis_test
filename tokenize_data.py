@@ -1,8 +1,9 @@
+import os
+import re
+from functools import reduce
+
 import pandas as pd
 from pythainlp import word_tokenize
-import os
-from functools import reduce
-import re
 
 
 def filter_thai(text):
@@ -13,6 +14,7 @@ def filter_thai(text):
     char_to_remove = re.findall(pattern, text)
     list_with_char_removed = [char for char in text if not char in char_to_remove]
     return ''.join(list_with_char_removed)
+
 
 def read_raw_data():
     '''
@@ -32,16 +34,17 @@ def score_to_sentiment(data):
     score 4 to label 1 (neutral)
     and score 1-3 to label 0 (negative)
     '''
-    return data.map(lambda x: max(0, x-3) if isinstance(x, int) else x)
+    data['rating'] = data['rating'].apply(lambda x: max(0, x - 3))
+    return data
 
 
-def tokenize(data):
+def tokenize_data(data):
     '''
     tokenize review in data table, save as new column 'tokenized'
     '''
-    return pd.concat([data, data['review']\
+    return pd.concat([data, data['review'] \
                      .apply(lambda x: list(filter(lambda y: y.replace(' ', ''),
-                                word_tokenize(filter_thai(x))))).rename('tokenized')], axis=1)
+                                                  word_tokenize(filter_thai(x))))).rename('tokenized')], axis=1)
 
 
 def compile_unique_tokens(data):
@@ -52,6 +55,6 @@ def compile_unique_tokens(data):
 
 
 if __name__ == '__main__':
-    token_set = compile_unique_tokens(tokenize(read_raw_data()))
+    token_set = compile_unique_tokens(tokenize_data(read_raw_data()))
     print(token_set)
     print(len(token_set))

@@ -14,6 +14,8 @@
 
 2023-12-29, 15:40 - Added basic tokenization module and researched potential deep learning models to fine-tune
 
+2023-12-30, 22:45 - Experimenting with basic LSTM. Downgraded required Python to 3.8 to enable GPU acceleration on Tensorflow. Have yet to re-test the web scraping module.
+
 ### Development plan
 
 1. Find some usable data for sentiment analysis in Thai
