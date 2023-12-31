@@ -16,6 +16,8 @@
 
 2023-12-30, 22:45 - Experimenting with basic LSTM. Downgraded required Python to 3.8 to enable GPU acceleration on Tensorflow. Have yet to re-test the web scraping module.
 
+2023-12-31, 23:15 - Modularized the LSTM module and data preparation module. Devised my own text slicing data augmentation method. Experimented with tf-idf input method.
+
 ### Development plan
 
 1. Find some usable data for sentiment analysis in Thai
@@ -23,6 +25,9 @@
 2. Tokenization / Data Preparation
     - Group reviews by rating and map to 3 levels of sentiment ✓
     - <u>pythainlp</u> library for tokenization ✓
+    - Data preprocessing ✓
+    - Text slicing Data Augmentation ✓
 3. Model
+    - LSTM module ✓
 4. Evaluation
 5. Clean Up

@@ -1,16 +1,15 @@
 import os
 import re
-from functools import reduce
 
 import pandas as pd
-from pythainlp import word_tokenize
+from pythainlp import word_tokenize, sent_tokenize
 
 
 def filter_thai(text):
     '''
     basically, filter out special characters
     '''
-    pattern = re.compile(r"[^\u0E00-\u0E7Fa-zA-Z ]|^'|'$|''")
+    pattern = re.compile(r"[^\u0E00-\u0E7F ]|^'|'$|''")
     char_to_remove = re.findall(pattern, text)
     list_with_char_removed = [char for char in text if not char in char_to_remove]
     return ''.join(list_with_char_removed)
@@ -38,23 +37,57 @@ def score_to_sentiment(data):
     return data
 
 
-def tokenize_data(data):
-    '''
-    tokenize review in data table, save as new column 'tokenized'
-    '''
-    return pd.concat([data, data['review'] \
-                     .apply(lambda x: list(filter(lambda y: y.replace(' ', ''),
-                                                  word_tokenize(filter_thai(x))))).rename('tokenized')], axis=1)
+def tokenize_data(x):
+    return ' '.join(list(filter(lambda y: y.replace(' ', ''), word_tokenize(filter_thai(x)))))
 
 
-def compile_unique_tokens(data):
-    '''
-    compile all unique tokens in the data
-    '''
-    return reduce(lambda a, b: a.union(set(b)), list(data['tokenized'].apply(lambda x: set(x))), set([]))
+# def tokenize_data_sentence(x):
+#     return [tokenize_data(y) for y in sent_tokenize(filter_thai(x))]
 
 
-if __name__ == '__main__':
-    token_set = compile_unique_tokens(tokenize_data(read_raw_data()))
-    print(token_set)
-    print(len(token_set))
+def create_sklearn_ngram_tokenizer(data, ngram_range=(1, 2), min_df=20):
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    tfidf = TfidfVectorizer(tokenizer=tokenize_data,
+                            ngram_range=ngram_range,
+                            min_df=min_df, sublinear_tf=True)
+    return tfidf.fit(data)
+
+
+def sklearn_ngram_tokenize(data, sklearn_ngram_tokenizer):
+    return sklearn_ngram_tokenizer.fit(data).toarray()
+
+
+def create_tensorflow_vectorize_layer(x_train, vocab_size=512, max_tokens=128):
+    from tensorflow.keras.layers import TextVectorization
+    vectorize_layer = TextVectorization(
+        standardize=None,
+        max_tokens=vocab_size,
+        output_mode='int',
+        output_sequence_length=max_tokens)
+    vectorize_layer.adapt(x_train)
+    return vectorize_layer
+
+
+def tensorflow_tokenize(data, vectorize_layer):
+    '''
+    expects input data to be sentence_tokenized tensor
+    returns data as tokenized by vectorize_layer
+    '''
+    import tensorflow as tf
+    # print(data)
+    return tf.map_fn(lambda x: vectorize_layer(x), data, dtype=tf.int64)
+    # data = data.apply(lambda x: ' '.join(tokenize_data(x)))
+    # return vectorize_layer(data)
+
+
+# def compile_unique_tokens(data):
+#     '''
+#     compile all unique tokens in the data
+#     '''
+#     return reduce(lambda a, b: a.union(set(b)), list(data['tokenized'].apply(lambda x: set(x))), set([]))
+
+
+# if __name__ == '__main__':
+#     token_set = compile_unique_tokens(tokenize_data(read_raw_data()))
+#     print(token_set)
+#     print(len(token_set))

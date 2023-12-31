@@ -1,8 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
 from itertools import product
 
-from data_preparation.data_parameters import VENUES, LOCATIONS, N_PAGES
-from data_preparation.scrape_reviews import scrape_reviews
+from data_scrape.data_parameters import VENUES, LOCATIONS, N_PAGES
+from data_scrape.scrape_reviews import scrape_reviews
 from parameters import N_THREADS
 
 if __name__ == '__main__':
