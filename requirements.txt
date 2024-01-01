@@ -1,6 +1,0 @@
-beautifulsoup4
-pytest-playwright
-pandas
-numpy
-pythainlp
-scikit-learn

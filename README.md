@@ -6,6 +6,7 @@
   - Rather, the main goal is to build working and reusable components for sentiment analysis task.
 - In the google scraping, google search goes by relevance according to google's algorithm and sometimes search results may not be restricted to what the search terms intend. Double-checking of relevance is beyond the scope of this repository.
 
+
 ### Development log
 
 2023-12-28, 10:30 - Created the repository.
@@ -18,6 +19,9 @@
 
 2023-12-31, 23:15 - Modularized the LSTM module and data preparation module. Devised my own text slicing data augmentation method. Experimented with tf-idf input method.
 
+2023-12-31, 22:30 - Productionized the LSTM model with Flask app and Web interface for model call. Added Naive-Bayes and Linear Regression module.
+
+
 ### Development plan
 
 1. Find some usable data for sentiment analysis in Thai
@@ -29,5 +33,12 @@
     - Text slicing Data Augmentation ✓
 3. Model
     - LSTM module ✓
+    - Naive-Bayes ✓
+    - Linear Regression ✓
 4. Evaluation
-5. Clean Up
+    - Accuracy ✓
+    - F1 ✓
+    - Confusion Matrix ✓
+5. Wrap Up
+    - Model Productionization via Flask app ✓
+    - Webapp interface for model call ✓

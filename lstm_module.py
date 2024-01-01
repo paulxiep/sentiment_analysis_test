@@ -5,7 +5,7 @@ from tensorflow.keras.layers import LSTM, Dense, Input, Embedding, Bidirectional
 from tensorflow.keras.models import Sequential
 from tensorflow_addons.metrics import F1Score
 
-from prepare_data import prepare_lstm_datasets
+from src.paul_sentiment_analysis.prepare_data import prepare_lstm_datasets
 
 
 def lstm_layers(vocab_size, max_tokens,
@@ -28,6 +28,16 @@ def dense_layers(input_dim, hidden_layers=(64,), dropout=0.1):
 
 
 def tensorflow_train(train, test, vocab_size=256, max_tokens=64, dropout=0.1):
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+                    monitor='val_loss',
+                    min_delta=0,
+                    patience=4,
+                    verbose=0,
+                    mode='min',
+                    baseline=None,
+                    restore_best_weights=True
+                )
+
     model = Sequential([
         lstm_layers(vocab_size, max_tokens, dropout=dropout),
         dense_layers(2 * max_tokens, dropout=dropout)
@@ -36,8 +46,12 @@ def tensorflow_train(train, test, vocab_size=256, max_tokens=64, dropout=0.1):
                   metrics=['accuracy', F1Score(3, average='weighted')])
     print(model.summary())
     print(tf.config.list_physical_devices('GPU'))
-    model.fit(train, validation_data=test, epochs=10, batch_size=4, verbose=1, shuffle=True)
+    model.fit(train, validation_data=test, epochs=20,
+              batch_size=4, verbose=1, shuffle=True,
+              callbacks=[early_stopping])
+    model.save('lstm.h5')
 
 
-train, test = prepare_lstm_datasets()
-tensorflow_train(train, test)
+if __name__ == '__main__':
+    train, test = prepare_lstm_datasets(save_vectorize_layer='tf_vectorizer')
+    tensorflow_train(train, test)

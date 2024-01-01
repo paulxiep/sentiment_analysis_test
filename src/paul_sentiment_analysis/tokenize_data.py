@@ -2,7 +2,7 @@ import os
 import re
 
 import pandas as pd
-from pythainlp import word_tokenize, sent_tokenize
+from pythainlp import word_tokenize
 
 
 def filter_thai(text):
@@ -37,24 +37,32 @@ def score_to_sentiment(data):
     return data
 
 
-def tokenize_data(x):
+def tokenize_text(x):
     return ' '.join(list(filter(lambda y: y.replace(' ', ''), word_tokenize(filter_thai(x)))))
 
 
-# def tokenize_data_sentence(x):
-#     return [tokenize_data(y) for y in sent_tokenize(filter_thai(x))]
-
-
-def create_sklearn_ngram_tokenizer(data, ngram_range=(1, 2), min_df=20):
+def create_sklearn_vectorizer(data, ngram_range=(1, 2), min_df=20):
     from sklearn.feature_extraction.text import TfidfVectorizer
-    tfidf = TfidfVectorizer(tokenizer=tokenize_data,
+    tfidf = TfidfVectorizer(tokenizer=tokenize_text,
                             ngram_range=ngram_range,
                             min_df=min_df, sublinear_tf=True)
     return tfidf.fit(data)
 
 
-def sklearn_ngram_tokenize(data, sklearn_ngram_tokenizer):
-    return sklearn_ngram_tokenizer.fit(data).toarray()
+def sklearn_vectorize(data, sklearn_vectorizer):
+    return sklearn_vectorizer.transform(data)
+
+
+def save_sklearn_vectorizer(sklearn_vectorizer, path='sklearn_vectorizer'):
+    import pickle
+    with open(path + '.pkl', 'wb') as f:
+        pickle.dump(sklearn_vectorizer, f)
+
+
+def load_sklearn_vectorizer(path='sklearn_vectorizer'):
+    import pickle
+    with open(path + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 
 def create_tensorflow_vectorize_layer(x_train, vocab_size=512, max_tokens=128):
@@ -74,20 +82,17 @@ def tensorflow_tokenize(data, vectorize_layer):
     returns data as tokenized by vectorize_layer
     '''
     import tensorflow as tf
-    # print(data)
     return tf.map_fn(lambda x: vectorize_layer(x), data, dtype=tf.int64)
-    # data = data.apply(lambda x: ' '.join(tokenize_data(x)))
-    # return vectorize_layer(data)
 
 
-# def compile_unique_tokens(data):
-#     '''
-#     compile all unique tokens in the data
-#     '''
-#     return reduce(lambda a, b: a.union(set(b)), list(data['tokenized'].apply(lambda x: set(x))), set([]))
+def save_tensorflow_vectorize_layer(vectorize_layer, path='tf_vectorizer'):
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Input
+
+    Sequential([Input(1), vectorize_layer]).save(path, save_format='tf')
 
 
-# if __name__ == '__main__':
-#     token_set = compile_unique_tokens(tokenize_data(read_raw_data()))
-#     print(token_set)
-#     print(len(token_set))
+def load_tensorflow_vectorize_layer(path='tf_vectorizer'):
+    from tensorflow.keras.models import load_model
+
+    return load_model(path, compile=False)
