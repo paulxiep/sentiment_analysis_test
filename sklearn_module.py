@@ -1,9 +1,12 @@
-from src.paul_sentiment_analysis.prepare_data import prepare_tfidf_data
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import f1_score, confusion_matrix
+import pickle
+
 import seaborn as sns
 from matplotlib import pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score, confusion_matrix
+from sklearn.naive_bayes import MultinomialNB
+
+from src.paul_sentiment_analysis.prepare_data import prepare_tfidf_data
 
 
 def evaluate_sklearn_model(model, x_test, y_test, model_name=''):
@@ -21,20 +24,21 @@ def evaluate_sklearn_model(model, x_test, y_test, model_name=''):
 def naive_bayes_train(x_train, y_train):
     model = MultinomialNB()
     model.fit(x_train.toarray(), y_train)
+    with open('naive_bayes.pkl', 'wb') as f:
+        pickle.dump(model, f)
     return model
 
 
 def logistic_regression_train(x_train, y_train):
     model = LogisticRegression(C=2., penalty="l2", solver="liblinear", dual=False, multi_class="ovr")
     model.fit(x_train.toarray(), y_train)
+    with open('logistic_regression.pkl', 'wb') as f:
+        pickle.dump(model, f)
     return model
 
 
 if __name__ == '__main__':
-    x_train, x_test, y_train, y_test = prepare_tfidf_data()
+    x_train, x_test, y_train, y_test = prepare_tfidf_data(save_vectorizer='sklearn_vectorizer')
     evaluate_sklearn_model(naive_bayes_train(x_train, y_train), x_test, y_test, model_name='naive_bayes')
-    evaluate_sklearn_model(logistic_regression_train(x_train, y_train), x_test, y_test, model_name='logistic_regression')
-
-
-
-
+    evaluate_sklearn_model(logistic_regression_train(x_train, y_train), x_test, y_test,
+                           model_name='logistic_regression')

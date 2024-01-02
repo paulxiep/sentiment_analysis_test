@@ -43,7 +43,7 @@ def tokenize_text(x):
 
 def create_sklearn_vectorizer(data, ngram_range=(1, 2), min_df=20):
     from sklearn.feature_extraction.text import TfidfVectorizer
-    tfidf = TfidfVectorizer(tokenizer=tokenize_text,
+    tfidf = TfidfVectorizer(tokenizer=word_tokenize,
                             ngram_range=ngram_range,
                             min_df=min_df, sublinear_tf=True)
     return tfidf.fit(data)

@@ -3,17 +3,18 @@ from functools import reduce
 import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Dense, Input, Embedding, Bidirectional, Dropout
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
 from tensorflow_addons.metrics import F1Score
 
 from src.paul_sentiment_analysis.prepare_data import prepare_lstm_datasets
 
 
 def lstm_layers(vocab_size, max_tokens,
-                n_lstm_features=64, n_embedding_features=3, dropout=0.1):
+                n_embedding_features, dropout=0.1):
     return Sequential([
         Input(max_tokens),
         Embedding(vocab_size + 1, n_embedding_features, input_length=max_tokens),
-        Bidirectional(layer=LSTM(n_lstm_features, dropout=dropout))
+        Bidirectional(layer=LSTM(max_tokens, dropout=dropout))
     ])
 
 
@@ -29,20 +30,24 @@ def dense_layers(input_dim, hidden_layers=(64,), dropout=0.1):
 
 def tensorflow_train(train, test, vocab_size=256, max_tokens=64, dropout=0.1):
     early_stopping = tf.keras.callbacks.EarlyStopping(
-                    monitor='val_loss',
-                    min_delta=0,
-                    patience=4,
-                    verbose=0,
-                    mode='min',
-                    baseline=None,
-                    restore_best_weights=True
-                )
+        monitor='val_f1_score',
+        min_delta=0,
+        patience=4,
+        verbose=0,
+        mode='max',
+        baseline=None,
+        restore_best_weights=True
+    )
 
     model = Sequential([
-        lstm_layers(vocab_size, max_tokens, dropout=dropout),
-        dense_layers(2 * max_tokens, dropout=dropout)
+        lstm_layers(vocab_size, max_tokens,
+                    n_embedding_features=vocab_size//16, dropout=dropout),
+        dense_layers(2 * max_tokens,
+                     dropout=dropout,
+                     hidden_layers=(max_tokens,)
+                     )
     ])
-    model.compile(loss='categorical_crossentropy', optimizer='adam',
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(),
                   metrics=['accuracy', F1Score(3, average='weighted')])
     print(model.summary())
     print(tf.config.list_physical_devices('GPU'))
@@ -53,5 +58,13 @@ def tensorflow_train(train, test, vocab_size=256, max_tokens=64, dropout=0.1):
 
 
 if __name__ == '__main__':
-    train, test = prepare_lstm_datasets(save_vectorize_layer='tf_vectorizer')
-    tensorflow_train(train, test)
+    train, test = prepare_lstm_datasets(
+        save_vectorize_layer='tf_vectorizer',
+        vocab_size=2048,
+        max_tokens=64,
+    )
+    tensorflow_train(
+        train, test,
+        vocab_size=2048,
+        max_tokens=64
+    )
