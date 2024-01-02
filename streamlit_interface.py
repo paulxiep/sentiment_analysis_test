@@ -91,7 +91,7 @@ model_choice = st.radio('choose model', options=['LSTM',
                                                  'Logistic Regression',
                                                  'Naive Bayes',
                                                  'Vote'])
-tab1, tab2 = st.tabs(['predict user input', 'predict test set'])
+tab1, tab2 = st.tabs(['predict user input', 'predict validation set'])
 
 with tab1:
     review_input = st.text_input('Input review text or csv path')
@@ -100,7 +100,7 @@ with tab1:
         display_predictions(*predict_input(review_input, model_choice))
 
 with tab2:
-    predict_button_tab2 = st.button('predict test set')
+    predict_button_tab2 = st.button('predict validation set')
     if predict_button_tab2:
         _, test_set, _ = prepare_train_test()
         display_predictions(*predict_input(
